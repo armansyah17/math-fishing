@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Math Fishing Duel - Fullscreen Edition</title>
+    <title>Math Fishing Duel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Paytone+One&display=swap" rel="stylesheet">
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -31,10 +31,58 @@
             position: relative;
         }
 
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: #0c4a6e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: opacity 0.5s ease;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .start-bg {
-            background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://i.imgur.com/qxFN8hj.jpeg');
+            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('https://i.imgur.com/qxFN8hj.jpeg');
             background-size: cover;
             background-position: center;
+        }
+
+        .fancy-title {
+            font-family: 'Paytone One', sans-serif;
+            font-size: 4rem;
+            line-height: 1;
+            text-transform: uppercase;
+            color: #fbbf24;
+            text-shadow: 
+                0 2px 0 #b45309,
+                0 4px 0 #92400e,
+                0 6px 0 #78350f,
+                0 8px 10px rgba(0,0,0,0.5);
+            letter-spacing: -2px;
+            transform: skew(-5deg);
+        }
+
+        @media (min-width: 768px) {
+            .fancy-title { font-size: 6rem; }
         }
 
         .game-bg {
@@ -181,27 +229,24 @@
             z-index: 40;
         }
 
-        /* Fullscreen Prompt */
-        #fullscreen-prompt {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            z-index: 500;
-            background: rgba(0,0,0,0.6);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 10px;
-            pointer-events: none;
+        .time-btn-selected {
+            background-color: #3b82f6 !important;
+            color: white !important;
+            border-color: #1d4ed8 !important;
+            transform: scale(1.05);
         }
     </style>
 </head>
-<body>
+<body onload="game.init()">
+
+    <!-- Layar Loading Awal -->
+    <div id="loading-screen">
+        <div class="loader"></div>
+        <p class="font-bold tracking-widest text-sm" id="loading-text">MENYIAPKAN DANAU...</p>
+    </div>
 
     <div id="app" class="start-bg">
         
-        <div id="fullscreen-prompt">Layar Penuh (Jika Didukung)</div>
-
         <!-- Kontrol Audio -->
         <div id="audio-control" onclick="game.toggleAudio()" class="absolute top-4 right-4 z-[300] bg-white/80 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer shadow-lg border-2 border-sky-700">
             <span id="audio-icon" class="text-lg">🔊</span>
@@ -209,14 +254,17 @@
 
         <!-- LAYAR AWAL -->
         <div id="start-screen" class="absolute inset-0 z-[100] flex flex-col items-center justify-center p-6 text-center">
-            <h1 class="text-5xl md:text-7xl font-black text-yellow-400 mb-2 drop-shadow-2xl italic tracking-tighter">MATH FISHING</h1>
-            <p class="text-white text-lg md:text-xl mb-10 font-bold drop-shadow-lg">Duel Berhitung di Danau</p>
+            <div class="fancy-title mb-1">MATH</div>
+            <div class="fancy-title mb-6" style="color: #60a5fa; text-shadow: 0 2px 0 #1d4ed8, 0 4px 0 #1e40af, 0 6px 0 #1e3a8a, 0 8px 10px rgba(0,0,0,0.5);">FISHING</div>
+            
+            <p class="text-white text-lg md:text-xl mb-10 font-bold drop-shadow-lg tracking-wide bg-black/20 px-4 py-1 rounded-full">DUEL BERHITUNG DI DANAU</p>
+            
             <div class="flex flex-col gap-4 w-full max-w-xs">
                 <button onclick="game.playSfx('click'); game.setMode('single')" class="bg-green-500 text-white font-bold py-4 rounded-2xl text-xl shadow-[0_6px_0_rgb(21,128,61)] active:translate-y-1">SINGLE PLAYER</button>
                 <button onclick="game.playSfx('click'); game.setMode('duel')" class="bg-orange-500 text-white font-bold py-4 rounded-2xl text-xl shadow-[0_6px_0_rgb(194,65,12)] active:translate-y-1">MODE DUEL</button>
                 <button onclick="game.playSfx('click'); game.toggleHowTo(true)" class="bg-blue-500 text-white font-bold py-3 rounded-2xl text-lg shadow-[0_6px_0_rgb(30,64,175)] active:translate-y-1 mt-2">CARA BERMAIN</button>
             </div>
-            <div class="absolute bottom-6 text-white/70 font-bold text-[10px] tracking-widest">© 2026 ARMANSYAH</div>
+            <div class="absolute bottom-6 text-white/70 font-bold text-[10px] tracking-widest uppercase">© 2026 ARMANSYAH</div>
         </div>
 
         <!-- MODAL CARA BERMAIN -->
@@ -256,12 +304,13 @@
 
         <!-- LAYAR PILIH WAKTU -->
         <div id="time-screen" class="hidden absolute inset-0 z-[130] flex flex-col items-center justify-center bg-sky-900/95 p-4 text-center">
-            <h2 class="text-2xl font-bold text-yellow-400 mb-6">Pilih Durasi</h2>
-            <div class="flex gap-3 mb-8">
-                <button onclick="game.playSfx('click'); game.selectTime(60)" id="t-60" class="bg-white text-blue-900 py-4 px-6 rounded-xl font-bold border-2 border-blue-500">1 Menit</button>
-                <button onclick="game.selectTime(180)" id="t-180" class="bg-white text-blue-900 py-4 px-6 rounded-xl font-bold border-2 border-blue-500">3 Menit</button>
+            <h2 class="text-2xl font-bold text-yellow-400 mb-6">Pilih Durasi Bermain</h2>
+            <div class="grid grid-cols-1 gap-3 mb-8 w-full max-w-xs">
+                <button onclick="game.playSfx('click'); game.selectTime(60)" id="t-60" class="bg-white text-blue-900 py-3 rounded-xl font-bold border-2 border-blue-500 transition-all">1 Menit</button>
+                <button onclick="game.playSfx('click'); game.selectTime(180)" id="t-180" class="bg-white text-blue-900 py-3 rounded-xl font-bold border-2 border-blue-500 transition-all">3 Menit</button>
+                <button onclick="game.playSfx('click'); game.selectTime(300)" id="t-300" class="bg-white text-blue-900 py-3 rounded-xl font-bold border-2 border-blue-500 transition-all">5 Menit</button>
             </div>
-            <button id="start-game-btn" disabled onclick="game.playSfx('click'); game.handleStartButtonClick();" class="bg-gray-500 text-white font-bold py-4 px-12 rounded-full text-xl opacity-50">MULAI MANCING! 🎣</button>
+            <button id="start-game-btn" disabled onclick="game.playSfx('click'); game.handleStartButtonClick();" class="bg-gray-500 text-white font-bold py-4 px-12 rounded-full text-xl opacity-50 shadow-xl">MULAI MANCING! 🎣</button>
         </div>
 
         <!-- LAYAR PERMAINAN -->
@@ -295,7 +344,7 @@
                 <line id="line-p2" x1="0" y1="0" x2="0" y2="0" stroke="#fde047" stroke-width="2" stroke-dasharray="4" class="opacity-0 transition-opacity" />
             </svg>
 
-            <div class="absolute top-[calc(10px+var(--safe-top))] left-1/2 -translate-x-1/2 z-[60] bg-white text-blue-900 px-5 py-1 rounded-full font-black text-xl border-2 border-blue-900" id="timer">01:00</div>
+            <div class="absolute top-[calc(10px+var(--safe-top))] left-1/2 -translate-x-1/2 z-[60] bg-white text-blue-900 px-5 py-1 rounded-full font-black text-xl border-2 border-blue-900 shadow-md" id="timer">01:00</div>
         </div>
 
         <!-- LAYAR HASIL -->
@@ -316,7 +365,7 @@
                         </div>
                     </div>
                 </div>
-                <button onclick="game.resetToHome()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-lg shadow-xl">MAIN LAGI 🔄</button>
+                <button onclick="game.resetToHome()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-lg shadow-xl active:scale-95 transition-transform">MAIN LAGI 🔄</button>
             </div>
         </div>
 
@@ -341,6 +390,13 @@
             'https://i.imgur.com/MpVjaFh.png', 'https://i.imgur.com/w8M2lR9.png'
         ];
 
+        const assetsToPreload = [
+            'https://i.imgur.com/qxFN8hj.jpeg',
+            'https://i.imgur.com/18hapWb.png',
+            ...fishTypes.map(f => f.src),
+            ...avatars
+        ];
+
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
         const game = {
@@ -350,7 +406,33 @@
             timeLeft: 60, isPlaying: false, fishP1: [], fishP2: [],
             audioMuted: false,
 
-            // Fungsi untuk mengaktifkan Fullscreen dengan penanganan error kebijakan browser
+            init() {
+                this.preloadAssets();
+            },
+
+            preloadAssets() {
+                let loaded = 0;
+                const total = assetsToPreload.length;
+                
+                assetsToPreload.forEach(src => {
+                    const img = new Image();
+                    img.src = src;
+                    img.onload = () => {
+                        loaded++;
+                        document.getElementById('loading-text').innerText = `MEMUAT ASSET: ${Math.round((loaded/total)*100)}%`;
+                        if (loaded === total) {
+                            setTimeout(() => {
+                                document.getElementById('loading-screen').style.opacity = '0';
+                                setTimeout(() => {
+                                    document.getElementById('loading-screen').style.display = 'none';
+                                }, 500);
+                            }, 300);
+                        }
+                    };
+                    img.onerror = () => { loaded++; }; // Tetap lanjut jika salah satu gagal
+                });
+            },
+
             requestFullscreen() {
                 try {
                     const doc = window.document.documentElement;
@@ -360,13 +442,9 @@
                                         doc.msRequestFullscreen;
 
                     if (requestMethod) {
-                        requestMethod.call(doc).catch(err => {
-                            console.warn("Fullscreen request rejected:", err.message);
-                        });
+                        requestMethod.call(doc).catch(() => {});
                     }
-                } catch (e) {
-                    console.error("Fullscreen logic failed:", e);
-                }
+                } catch (e) {}
             },
 
             handleStartButtonClick() {
@@ -460,6 +538,9 @@
 
             selectTime(sec) {
                 this.timeLeft = sec;
+                document.querySelectorAll('#time-screen button[id^="t-"]').forEach(btn => btn.classList.remove('time-btn-selected'));
+                document.getElementById('t-' + sec).classList.add('time-btn-selected');
+                
                 document.getElementById('start-game-btn').disabled = false;
                 document.getElementById('start-game-btn').classList.remove('bg-gray-500', 'opacity-50');
                 document.getElementById('start-game-btn').classList.add('bg-green-500');
@@ -581,24 +662,24 @@
             },
 
             startIntervals() {
-                setInterval(() => {
-                    if (!this.isPlaying) return;
+                const timerInt = setInterval(() => {
+                    if (!this.isPlaying) { clearInterval(timerInt); return; }
                     this.timeLeft--;
                     const m = Math.floor(this.timeLeft/60), s = this.timeLeft%60;
                     document.getElementById('timer').innerText = `${m}:${s < 10 ? '0'+s : s}`;
                     if (this.timeLeft <= 0) this.endGame();
                 }, 1000);
 
-                setInterval(() => {
-                    if (this.isPlaying) {
-                        if (this.fishP1.length < 4) this.spawnFish('p1');
-                        if (this.fishP2.length < 4) this.spawnFish('p2');
-                    }
+                const spawnInt = setInterval(() => {
+                    if (!this.isPlaying) { clearInterval(spawnInt); return; }
+                    if (this.fishP1.length < 4) this.spawnFish('p1');
+                    if (this.fishP2.length < 4) this.spawnFish('p2');
                 }, 2500);
 
                 if (this.mode === 'single') {
-                    setInterval(() => {
-                        if (this.isPlaying && this.fishP2.length > 0 && !this.p2Target) {
+                    const aiInt = setInterval(() => {
+                        if (!this.isPlaying) { clearInterval(aiInt); return; }
+                        if (this.fishP2.length > 0 && !this.p2Target) {
                             const f = this.fishP2[Math.floor(Math.random()*this.fishP2.length)];
                             setTimeout(() => {
                                 if (!this.isPlaying) return;
@@ -614,7 +695,8 @@
                 if (!this.isPlaying) return;
                 [this.fishP1, this.fishP2].forEach((list, idx) => {
                     const pid = idx === 0 ? 'p1' : 'p2';
-                    list.forEach((f, i) => {
+                    for(let i = list.length - 1; i >= 0; i--) {
+                        let f = list[i];
                         f.x += f.speed * f.dir;
                         f.el.style.left = f.x + '%';
                         if (f.x < -20 || f.x > 120) {
@@ -625,7 +707,7 @@
                             f.el.remove();
                             list.splice(i, 1);
                         }
-                    });
+                    }
                 });
                 requestAnimationFrame(() => this.loop());
             },
